@@ -382,7 +382,7 @@ gwqs <- function(formula, data, na.action, weights, mix_name, stratified, rh = 1
 
   if(is.character(family)){
     if(family == "negbin") family <- list(family = family)
-    else if(family == "multinomial") stop("'family = multinomial' is not supported by the 'gwqs' function. Please use 'gwqs_multinom' function.\n")
+    else if(family == "multinomial") stop("'family = multinomial' is not supported by the ' <- ' function. Please use 'gwqs_multinom' function.\n")
     else family <- get(family, mode = "function", envir = parent.frame())
   }
   if(is.function(family)) family <- family()
@@ -549,11 +549,11 @@ gwqs <- function(formula, data, na.action, weights, mix_name, stratified, rh = 1
   plan_strategy_rh <- ifelse(rh==1, "sequential", plan_strategy)
   plan_strategy_b <- ifelse(rh==1, plan_strategy, "sequential")
 
-  plan(plan_strategy_rh)
+  plan(plan_strategy_rh, workers = future::nbrOfFreeWorkers())
   gwqslist <- future_lapply(X=1:rh, FUN = function(i){
   # gwqslist <- lapply(1:rh, function(i){
     if(control$trace) cat("start opt\n")
-    plan(plan_strategy_b)
+    plan(plan_strategy_b, workers = future::nbrOfFreeWorkers())
     param <- future_lapply(X = 1:b, FUN = optim.f, objfn = objfn, Y = Y[!validation_rows[[i]]],
     # param <- lapply(X = 1:b, FUN = optim.f, objfn = objfn, Y = Y[!validation_rows[[i]]],
                     Xm = Xm[!validation_rows[[i]],], Q = Q[!validation_rows[[i]],], offset = offset[!validation_rows[[i]]], wghts = wghts[!validation_rows[[i]]],
@@ -570,7 +570,7 @@ gwqs <- function(formula, data, na.action, weights, mix_name, stratified, rh = 1
     slctd_vars <- lapply(param, function(i) i$slctd_vars)
 
     if(rs){
-      plan(plan_strategy)
+      plan(plan_strategy, workers = future::nbrOfFreeWorkers())
       param <- future_lapply(X = 1:b, FUN = set_par_names, slctd_vars, param, q_name = colnames(Q), family = family,
                              dwqs = dwqs, future.seed = FALSE)
     }
